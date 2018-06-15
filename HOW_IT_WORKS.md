@@ -1,6 +1,6 @@
 # How it works
 
-![architecture](assets/architecture.mermaid.svg)]
+![architecture](assets/architecture.mermaid.svg)
 
 The WIP GitHub is built with [Probot](https://probot.github.io/) – a Node.js framework for GitHub workflow automation and improvements.
 
