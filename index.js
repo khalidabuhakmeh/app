@@ -10,7 +10,7 @@ function probotPlugin (robot) {
     'pull_request.labeled',
     'pull_request.unlabeled',
     'pull_request.synchronize'
-  ], handlePullRequestChange)
+  ], handlePullRequestChange.bind(null, robot))
 
   sendLogs(robot)
 }
