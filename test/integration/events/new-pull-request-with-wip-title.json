@@ -1,0 +1,24 @@
+{
+  "event": "pull_request",
+  "payload": {
+    "action": "opened",
+    "pull_request": {
+      "title": "[WIP] Test",
+      "html_url": "https://github.com/wip/app/issues/1",
+      "head": {
+        "sha": "sha123"
+      },
+      "labels": []
+    },
+    "repository": {
+      "name": "app",
+      "owner": {
+        "id": 1,
+        "login": "wip"
+      }
+    },
+    "installation": {
+      "id": 1
+    }
+  }
+}

@@ -15,7 +15,7 @@ branches:
 stages:
   - test
   - name: release
-    if: branch = master AND type IN (push)
+    if: branch = marketplace-app AND type IN (push)
 
 jobs:
   include:
