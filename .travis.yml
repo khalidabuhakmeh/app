@@ -29,3 +29,5 @@ jobs:
         script: scripts/deploy.sh
         provider: script
         skip_cleanup: true
+        on:
+          branch: marketplace-app
