@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "coverage": "tap --coverage-report=html",
+    "coverage:ci": "tap --coverage-report=text-lcov | coveralls",
     "deploy": "scripts/deploy.sh",
     "start": "probot run ./index.js",
     "now-start": "PRIVATE_KEY=$(echo $PRIVATE_KEY | base64 -d) npm start",
@@ -36,6 +37,7 @@
     "probot": "^7.0.0"
   },
   "devDependencies": {
+    "coveralls": "^3.0.1",
     "lodash.clonedeep": "^4.5.0",
     "proxyquire": "^2.0.1",
     "semantic-release": "^15.0.0",
