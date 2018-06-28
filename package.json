@@ -60,15 +60,15 @@
     ]
   },
   "now": {
-    "alias": "wip",
+    "alias": "wip-beta",
     "env": {
-      "APP_ID": "@app-id",
-      "LOG_LEVEL": "@log-level",
-      "NODE_ENV": "production",
-      "PRIVATE_KEY": "@private-key",
-      "WEBHOOK_SECRET": "@webhook-secret",
+      "APP_ID": "@beta-app-id",
+      "LOG_LEVEL": "@beta-log-level",
       "LOGDNA_API_KEY": "@logdna-api-key",
-      "SENTRY_DSN": "@sentry-dsn"
+      "NODE_ENV": "production",
+      "PRIVATE_KEY": "@beta-private-key",
+      "SENTRY_DSN": "@sentry-dsn",
+      "WEBHOOK_SECRET": "@beta-webhook-secret"
     }
   }
 }
