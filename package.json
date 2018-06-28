@@ -60,6 +60,7 @@
     ]
   },
   "now": {
+    "name": "wip-beta",
     "alias": "wip-beta",
     "env": {
       "APP_ID": "@beta-app-id",
