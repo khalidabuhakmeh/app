@@ -1,13 +1,13 @@
-const {createRobot} = require('probot')
+const {Application} = require('probot')
 const simple = require('simple-mock')
 const {beforeEach, test} = require('tap')
 
-const app = require('../../')
+const plugin = require('../../')
 const NOT_FOUND_ERROR = new Error('Not found')
 NOT_FOUND_ERROR.code = 404
 
 beforeEach(function (done) {
-  this.robot = createRobot()
+  this.app = new Application()
   this.githubMock = {
     apps: {
       checkMarketplaceListingAccount: simple.mock().resolveWith({
@@ -29,13 +29,13 @@ beforeEach(function (done) {
       getCommits: simple.mock()
     }
   }
-  this.robot.auth = () => Promise.resolve(this.githubMock)
+  this.app.auth = () => Promise.resolve(this.githubMock)
   this.logMock = simple.mock()
   this.logMock.info = simple.mock()
   this.logMock.error = simple.mock().callFn(console.log)
   this.logMock.child = simple.mock().returnWith(this.logMock)
-  this.robot.log = this.logMock
-  app(this.robot)
+  this.app.log = this.logMock
+  this.app.load(plugin)
   done()
 })
 
@@ -48,7 +48,7 @@ test('new pull request with "Test" title', async function (t) {
   })
   const newPullRequestWithTestTitle = require('./events/new-pull-request-with-test-title.json')
 
-  await this.robot.receive(newPullRequestWithTestTitle)
+  await this.app.receive(newPullRequestWithTestTitle)
   t.is(this.githubMock.repos.getCombinedStatusForRef.callCount, 1)
   t.deepEqual(this.githubMock.repos.getCombinedStatusForRef.lastCall.arg, {
     owner: 'wip',
@@ -86,7 +86,7 @@ test('new pull request with "[WIP] Test" title', async function (t) {
   })
   const newPullRequestWithWipTitle = require('./events/new-pull-request-with-wip-title.json')
 
-  await this.robot.receive(newPullRequestWithWipTitle)
+  await this.app.receive(newPullRequestWithWipTitle)
   t.is(this.githubMock.repos.getCombinedStatusForRef.callCount, 1)
   t.deepEqual(this.githubMock.repos.getCombinedStatusForRef.lastCall.arg, {
     owner: 'wip',
@@ -127,7 +127,7 @@ test('pending pull request with "Test" title', async function (t) {
     }
   })
 
-  await this.robot.receive(newPullRequestWithTestTitle)
+  await this.app.receive(newPullRequestWithTestTitle)
   t.is(this.githubMock.repos.createStatus.callCount, 1)
   t.deepEqual(this.githubMock.repos.createStatus.lastCall.arg, {
     context: 'WIP (beta)',
@@ -162,7 +162,7 @@ test('ready pull request with "[WIP] Test" title', async function (t) {
     }
   })
 
-  await this.robot.receive(newPullRequestWithWipTitle)
+  await this.app.receive(newPullRequestWithWipTitle)
   t.is(this.githubMock.repos.createStatus.callCount, 1)
   t.deepEqual(this.githubMock.repos.createStatus.lastCall.arg, {
     context: 'WIP (beta)',
@@ -197,7 +197,7 @@ test('pending pull request with "[WIP] Test" title', async function (t) {
     }
   })
 
-  await this.robot.receive(newPullRequestWithWipTitle)
+  await this.app.receive(newPullRequestWithWipTitle)
   t.is(this.githubMock.repos.createStatus.callCount, 0)
   t.is(this.logMock.info.callCount, 1)
   t.deepEqual(this.logMock.info.lastCall.arg, {
@@ -223,7 +223,7 @@ test('ready pull request with "Test" title', async function (t) {
     }
   })
 
-  await this.robot.receive(newPullRequestWithTestTitle)
+  await this.app.receive(newPullRequestWithTestTitle)
   t.is(this.githubMock.repos.createStatus.callCount, 0)
   t.is(this.logMock.info.callCount, 1)
   t.deepEqual(this.logMock.info.lastCall.arg, {
@@ -249,7 +249,7 @@ test('custom term: 🚧', async function (t) {
     }
   })
 
-  await this.robot.receive(require('./events/new-pull-request-with-emoji-title.json'))
+  await this.app.receive(require('./events/new-pull-request-with-emoji-title.json'))
   t.is(this.githubMock.repos.createStatus.callCount, 1)
   t.deepEqual(this.githubMock.repos.createStatus.lastCall.arg, {
     context: 'WIP (beta)',
@@ -284,7 +284,7 @@ test('custom location: label_name', async function (t) {
     }
   })
 
-  await this.robot.receive(require('./events/new-pull-request-with-wip-label.json'))
+  await this.app.receive(require('./events/new-pull-request-with-wip-label.json'))
   t.is(this.githubMock.repos.createStatus.callCount, 1)
   t.deepEqual(this.githubMock.repos.createStatus.lastCall.arg, {
     context: 'WIP (beta)',
@@ -326,7 +326,7 @@ test('custom location: commits', async function (t) {
     }]
   })
 
-  await this.robot.receive(require('./events/new-pull-request-with-wip-label.json'))
+  await this.app.receive(require('./events/new-pull-request-with-wip-label.json'))
   t.is(this.githubMock.repos.createStatus.callCount, 1)
   t.deepEqual(this.githubMock.repos.createStatus.lastCall.arg, {
     context: 'WIP (beta)',
@@ -382,7 +382,7 @@ test('complex config', async function (t) {
     }]
   })
 
-  await this.robot.receive(require('./events/new-pull-request-with-test-title.json'))
+  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
   t.is(this.githubMock.repos.createStatus.callCount, 1)
   t.deepEqual(this.githubMock.repos.createStatus.lastCall.arg, {
     context: 'WIP (beta)',
@@ -428,7 +428,7 @@ test('loads commits once only', async function (t) {
     }]
   })
 
-  await this.robot.receive(require('./events/new-pull-request-with-test-title.json'))
+  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
   t.is(this.githubMock.pullRequests.getCommits.callCount, 1)
   t.end()
 })
