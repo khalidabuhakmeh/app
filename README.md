@@ -13,54 +13,28 @@
 
 ## Usage
 
-1. Install the app on your GitHub Repositories: [github.com/apps/wip](https://github.com/apps/wip)
-2. The WIP bot sets status of the request title to pending if it finds  "wip", "work in progress" or "do not merge" (not case-sensitive) in
-   1. The pull request title
-   2. One of the pull request labels
-   3. One of the pull request commit messages
-3. If it doesn’t find the words anywhere, it will set status to success
+Find all instructions at https://github.com/marketplace/wip. I encourage you to [subscribe to updates](https://github.com/wip/app/issues/89) if you use the app.
 
-If you use the WIP App **we strongly recommend** to [subscribe to our updates](https://github.com/wip/app/issues/89).
-If you like it, please star this repository :)
+## About WIP
 
-## Local setup
+Besides being a hopefully useful GitHub application, the WIP app is also meant as a reference implementation. I try to keep the complexity low and the code easy to follow. If you are thinking of creating your own GitHub app, the WIP might be a good starting point for you.
 
-- Setup repository
+Besides the code, I also made our [policies](https://github.com/wip/policies) good templates for your app.
 
-  ```
-  git clone git@github.com:wip/app.git wip-app
-  cd wip-app
-  npm install
-  ```
-- Create your own GitHub app: [instructions](https://probot.github.io/docs/development/#configure-a-github-app)
-- On your local machine, copy `.env.example` to `.env`.
-- Go to [smee.io](https://smee.io) and click **Start a new channel**. Set `WEBHOOK_PROXY_URL` in `.env` to the URL that you are redirected to.
-- [Create a new GitHub App](https://github.com/settings/apps/new) with:
-  - **Webhook URL**: Use your `WEBHOOK_PROXY_URL` from the previous step.
-  - **Webhook Secret**: `development`.
-  - **Permissions & events**
-    - Commit statuses **(read & write)**
-    - Pull Requests **(read only)**
-    - Subscribe to events **Pull request**
-- Download the private key and move it to your project's directory. It will get picked up by Probot automatically.
-- Edit `.env` and set `APP_ID` to the ID of the app you just created. The App ID can be found in your app settings page here
-- Run `$ npm start` to start the server/
+All revenue from the "pro" plan will be donated to [Rails Girls Summer of Code](https://railsgirlssummerofcode.org/). I only added the paid plan to make the WIP a real-life GitHub App example. If you cannot pay but depend on the pro features, please let me know, I’m sure we can find a way.
 
-## Contribute
+If you have any questions, please don’t hesitate to create an issue.
 
-If you’d like to contribute a bug fix or feature to the `wip` app, please fork the repository, then clone it to your computer. Then install dependencies and run the tests
+## Contributing
 
-```
-npm install
-npm test
-```
-
-Before adding a feature, create an issue first to ask if it’s within the scope of the app. If possible, add tests to your pull requests.
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Credits
+
+The WIP app was created by [Gregor Martynus](https://github.com/gr2m). You can follow him on twitter at [@gr2m](https://twitter.com/gr2m).
 
 The logo was created by [Micah Ilbery](https://github.com/micahilbery).
 
 ## Legal
 
-License: [Apache 2.0](LICENSE). [Privacy Policy](https://github.com/wip/policies/blob/master/PRIVACY.md). [Security Policy](https://github.com/wip/policies/blob/master/SECURITY.md)
+License: [Apache 2.0](LICENSE). [Privacy Policy](https://github.com/wip/policies/blob/master/PRIVACY.md). [Security Policy](https://github.com/wip/policies/blob/master/SECURITY.md). [Code of Conduct](CODE_OF_CONDUCT.md)
