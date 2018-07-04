@@ -32,7 +32,7 @@ beforeEach(function (done) {
       })
     },
     repos: {
-      getContent: simple.mock()
+      getContent: simple.mock().rejectWith(NOT_FOUND_ERROR)
     },
     pullRequests: {
       getCommits: simple.mock().resolveWith({data: []})
@@ -49,9 +49,6 @@ beforeEach(function (done) {
 })
 
 test('new pull request with "Test" title', async function (t) {
-  // no configuration
-  this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
-
   await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
 
   // check for current status
@@ -95,9 +92,6 @@ test('new pull request with "Test" title', async function (t) {
 })
 
 test('new pull request with "[WIP] Test" title', async function (t) {
-  // no configuration
-  this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
-
   await this.app.receive(require('./events/new-pull-request-with-wip-title.json'))
 
   // create new check run
@@ -124,9 +118,6 @@ test('new pull request with "[WIP] Test" title', async function (t) {
 })
 
 test('pending pull request with "Test" title', async function (t) {
-  // no configuration
-  this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
-
   // simulate existing check runs
   this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
@@ -151,9 +142,6 @@ test('pending pull request with "Test" title', async function (t) {
 })
 
 test('ready pull request with "[WIP] Test" title', async function (t) {
-  // no configuration
-  this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
-
   // simulate existing check runs
   this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
@@ -178,9 +166,6 @@ test('ready pull request with "[WIP] Test" title', async function (t) {
 })
 
 test('pending pull request with "[WIP] Test" title', async function (t) {
-  // no configuration
-  this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
-
   // simulate existing check runs
   this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
@@ -204,9 +189,6 @@ test('pending pull request with "[WIP] Test" title', async function (t) {
 })
 
 test('ready pull request with "Test" title', async function (t) {
-  // no configuration
-  this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
-
   // simulate existing check runs
   this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
@@ -231,7 +213,7 @@ test('ready pull request with "Test" title', async function (t) {
 
 test('custom term: 🚧', async function (t) {
   // custom configuration
-  this.githubMock.repos.getContent.resolveWith({
+  this.githubMock.repos.getContent = simple.mock().resolveWith({
     data: {
       content: Buffer.from('terms: 🚧').toString('base64')
     }
@@ -280,7 +262,7 @@ test('custom term: 🚧', async function (t) {
 
 test('custom location: label_name', async function (t) {
   // custom configuration
-  this.githubMock.repos.getContent.resolveWith({
+  this.githubMock.repos.getContent = simple.mock().resolveWith({
     data: {
       content: Buffer.from('locations: label_name').toString('base64')
     }
@@ -307,7 +289,7 @@ test('custom location: label_name', async function (t) {
 
 test('custom location: commits', async function (t) {
   // custom configuration
-  this.githubMock.repos.getContent.resolveWith({
+  this.githubMock.repos.getContent = simple.mock().resolveWith({
     data: {
       content: Buffer.from('locations: commit_subject').toString('base64')
     }
@@ -354,7 +336,7 @@ test('complex config', async function (t) {
   - fixup!
   - squash!
   locations: commit_subject`
-  this.githubMock.repos.getContent.resolveWith({
+  this.githubMock.repos.getContent = simple.mock().resolveWith({
     data: {
       content: Buffer.from(config).toString('base64')
     }
@@ -399,7 +381,7 @@ test('loads commits once only', async function (t) {
   locations: commit_subject
 - terms: 'bar'
   locations: commit_subject`
-  this.githubMock.repos.getContent.resolveWith({
+  this.githubMock.repos.getContent = simple.mock().resolveWith({
     data: {
       content: Buffer.from(config).toString('base64')
     }
@@ -422,9 +404,6 @@ test('loads commits once only', async function (t) {
 })
 
 test('override', async function (t) {
-  // no configuration
-  this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
-
   await this.app.receive(require('./events/new-pull-request-with-wip-title-and-override.json'))
 
   // create new check run
@@ -448,9 +427,6 @@ test('override', async function (t) {
 })
 
 test('pending pull request with override', {only: true}, async function (t) {
-  // no configuration
-  this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
-
   // no existing check runs
   this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
