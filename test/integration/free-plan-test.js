@@ -19,7 +19,11 @@ beforeEach(function (done) {
     },
     checks: {
       create: simple.mock(),
-      listForRef: simple.mock()
+      listForRef: simple.mock().resolveWith({
+        data: {
+          check_runs: []
+        }
+      })
     }
   }
   this.app.auth = () => Promise.resolve(this.githubMock)
@@ -33,13 +37,6 @@ beforeEach(function (done) {
 })
 
 test('new pull request with "Test" title', async function (t) {
-  // simulate existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
-    data: {
-      check_runs: []
-    }
-  })
-
   await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
 
   // check for current status
@@ -84,13 +81,6 @@ test('new pull request with "Test" title', async function (t) {
 })
 
 test('new pull request with "[WIP] Test" title', async function (t) {
-  // simulate existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
-    data: {
-      check_runs: []
-    }
-  })
-
   await this.app.receive(require('./events/new-pull-request-with-wip-title.json'))
 
   // create new check run
@@ -118,7 +108,7 @@ test('new pull request with "[WIP] Test" title', async function (t) {
 
 test('pending pull request with "Test" title', async function (t) {
   // simulate existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
+  this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
         conclusion: 'action_required'
@@ -142,7 +132,7 @@ test('pending pull request with "Test" title', async function (t) {
 
 test('ready pull request with "[WIP] Test" title', async function (t) {
   // simulate existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
+  this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
         conclusion: 'success'
@@ -166,7 +156,7 @@ test('ready pull request with "[WIP] Test" title', async function (t) {
 
 test('pending pull request with "[WIP] Test" title', async function (t) {
   // simulate existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
+  this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
         conclusion: 'action_required'
@@ -189,7 +179,7 @@ test('pending pull request with "[WIP] Test" title', async function (t) {
 
 test('ready pull request with "Test" title', async function (t) {
   // simulate existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
+  this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
         conclusion: 'success'
@@ -222,13 +212,6 @@ test('active marketplace "free" plan', async function (t) {
     }
   })
 
-  // simulate check runs
-  this.githubMock.checks.listForRef.resolveWith({
-    data: {
-      check_runs: []
-    }
-  })
-
   await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
 
   // create new check run
@@ -245,7 +228,7 @@ test('active marketplace "free" plan', async function (t) {
 
 test('request error', async function (t) {
   // simulate request error
-  this.githubMock.checks.listForRef.rejectWith(SERVER_ERROR)
+  this.githubMock.checks.listForRef = simple.mock().rejectWith(SERVER_ERROR)
   this.logMock.error = simple.mock()
 
   await this.app.receive(require('./events/new-pull-request-with-test-title.json'))

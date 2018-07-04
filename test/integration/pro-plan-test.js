@@ -25,7 +25,11 @@ beforeEach(function (done) {
     },
     checks: {
       create: simple.mock(),
-      listForRef: simple.mock()
+      listForRef: simple.mock().resolveWith({
+        data: {
+          check_runs: []
+        }
+      })
     },
     repos: {
       getContent: simple.mock()
@@ -47,13 +51,6 @@ beforeEach(function (done) {
 test('new pull request with "Test" title', async function (t) {
   // no configuration
   this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
-
-  // no existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
-    data: {
-      check_runs: []
-    }
-  })
 
   await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
 
@@ -101,13 +98,6 @@ test('new pull request with "[WIP] Test" title', async function (t) {
   // no configuration
   this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
 
-  // no existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
-    data: {
-      check_runs: []
-    }
-  })
-
   await this.app.receive(require('./events/new-pull-request-with-wip-title.json'))
 
   // create new check run
@@ -138,7 +128,7 @@ test('pending pull request with "Test" title', async function (t) {
   this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
 
   // simulate existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
+  this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
         conclusion: 'action_required'
@@ -165,7 +155,7 @@ test('ready pull request with "[WIP] Test" title', async function (t) {
   this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
 
   // simulate existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
+  this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
         conclusion: 'success'
@@ -192,7 +182,7 @@ test('pending pull request with "[WIP] Test" title', async function (t) {
   this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
 
   // simulate existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
+  this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
         conclusion: 'action_required'
@@ -218,7 +208,7 @@ test('ready pull request with "Test" title', async function (t) {
   this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
 
   // simulate existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
+  this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
         conclusion: 'success'
@@ -244,13 +234,6 @@ test('custom term: 🚧', async function (t) {
   this.githubMock.repos.getContent.resolveWith({
     data: {
       content: Buffer.from('terms: 🚧').toString('base64')
-    }
-  })
-
-  // no existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
-    data: {
-      check_runs: []
     }
   })
 
@@ -303,13 +286,6 @@ test('custom location: label_name', async function (t) {
     }
   })
 
-  // no existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
-    data: {
-      check_runs: []
-    }
-  })
-
   await this.app.receive(require('./events/new-pull-request-with-wip-label.json'))
 
   // create new check run
@@ -334,13 +310,6 @@ test('custom location: commits', async function (t) {
   this.githubMock.repos.getContent.resolveWith({
     data: {
       content: Buffer.from('locations: commit_subject').toString('base64')
-    }
-  })
-
-  // no existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
-    data: {
-      check_runs: []
     }
   })
 
@@ -391,13 +360,6 @@ test('complex config', async function (t) {
     }
   })
 
-  // no existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
-    data: {
-      check_runs: []
-    }
-  })
-
   // commits
   this.githubMock.pullRequests.getCommits = simple.mock().resolveWith({
     data: [{
@@ -443,13 +405,6 @@ test('loads commits once only', async function (t) {
     }
   })
 
-  // no existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
-    data: {
-      check_runs: []
-    }
-  })
-
   // commits
   this.githubMock.pullRequests.getCommits = simple.mock().resolveWith({
     data: [{
@@ -469,13 +424,6 @@ test('loads commits once only', async function (t) {
 test('override', async function (t) {
   // no configuration
   this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
-
-  // no existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
-    data: {
-      check_runs: []
-    }
-  })
 
   await this.app.receive(require('./events/new-pull-request-with-wip-title-and-override.json'))
 
@@ -504,7 +452,7 @@ test('pending pull request with override', {only: true}, async function (t) {
   this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
 
   // no existing check runs
-  this.githubMock.checks.listForRef.resolveWith({
+  this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
         conclusion: 'action_required',
