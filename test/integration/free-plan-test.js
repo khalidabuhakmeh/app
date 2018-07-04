@@ -8,6 +8,7 @@ const NOT_FOUND_ERROR = new Error('Not found')
 NOT_FOUND_ERROR.code = 404
 const SERVER_ERROR = new Error('Ooops')
 SERVER_ERROR.code = 500
+const NOW = new Date(0)
 
 beforeEach(function (done) {
   lolex.install()
@@ -32,14 +33,16 @@ beforeEach(function (done) {
 })
 
 test('new pull request with "Test" title', async function (t) {
+  // simulate existing check runs
   this.githubMock.checks.listForRef.resolveWith({
     data: {
       check_runs: []
     }
   })
-  const newPullRequestWithTestTitle = require('./events/new-pull-request-with-test-title.json')
 
-  await this.app.receive(newPullRequestWithTestTitle)
+  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
+
+  // check for current status
   t.is(this.githubMock.checks.listForRef.callCount, 1)
   t.deepEqual(this.githubMock.checks.listForRef.lastCall.arg, {
     owner: 'wip',
@@ -47,23 +50,24 @@ test('new pull request with "Test" title', async function (t) {
     ref: 'sha123',
     check_name: 'WIP (beta)'
   })
+
+  // create new check run
+  const createCheckParams = this.githubMock.checks.create.lastCall.arg
   t.is(this.githubMock.checks.create.callCount, 1)
-  t.deepEqual(this.githubMock.checks.create.lastCall.arg, {
-    owner: 'wip',
-    repo: 'app',
-    name: 'WIP (beta)',
-    head_branch: '',
-    head_sha: 'sha123',
-    status: 'completed',
-    completed_at: new Date(),
-    conclusion: 'success',
-    output: {
-      title: 'Ready for review',
-      summary: 'No match found based on configuration',
-      text: 'By default, WIP only checks the pull request title for the terms "WIP", "Work in progress" and "🚧".\n\nYou can configure both the terms and the location that the WIP app will look for by signing up for the pro plan: https://github.com/marketplace/wip.\nAll revenue will be donated to [Rails Girls Summer of Code](https://railsgirlssummerofcode.org/).'
-    },
-    actions: []
-  })
+  t.is(createCheckParams.owner, 'wip')
+  t.is(createCheckParams.repo, 'app')
+  t.is(createCheckParams.name, 'WIP (beta)')
+  t.is(createCheckParams.status, 'completed')
+  t.same(createCheckParams.completed_at, NOW)
+  t.is(createCheckParams.conclusion, 'success')
+  t.is(createCheckParams.output.title, 'Ready for review')
+  t.match(createCheckParams.output.summary, /No match found based on configuration/)
+  t.match(createCheckParams.output.text, /WIP only checks the pull request title for the terms "WIP", "Work in progress" and "🚧"/)
+  t.match(createCheckParams.output.text, /You can configure both the terms and the location that the WIP app will look for by signing up for the pro plan/)
+  t.match(createCheckParams.output.text, /All revenue will be donated/)
+  t.deepEqual(createCheckParams.actions, [])
+
+  // check resulting logs
   t.is(this.logMock.info.callCount, 1)
   t.deepEqual(this.logMock.info.lastCall.arg, {
     accountId: 1,
@@ -75,64 +79,45 @@ test('new pull request with "Test" title', async function (t) {
     title: 'Test',
     url: 'https://github.com/wip/app/issues/1'
   })
+
   t.end()
 })
 
 test('new pull request with "[WIP] Test" title', async function (t) {
+  // simulate existing check runs
   this.githubMock.checks.listForRef.resolveWith({
     data: {
       check_runs: []
     }
   })
-  const newPullRequestWithWipTitle = require('./events/new-pull-request-with-wip-title.json')
 
-  await this.app.receive(newPullRequestWithWipTitle)
-  t.is(this.githubMock.checks.listForRef.callCount, 1)
-  t.deepEqual(this.githubMock.checks.listForRef.lastCall.arg, {
-    owner: 'wip',
-    repo: 'app',
-    ref: 'sha123',
-    check_name: 'WIP (beta)'
-  })
-  t.is(this.githubMock.checks.create.callCount, 1)
-  t.deepEqual(this.githubMock.checks.create.lastCall.arg, { owner: 'wip',
-    repo: 'app',
-    name: 'WIP (beta)',
-    head_branch: '',
-    head_sha: 'sha123',
-    status: 'completed',
-    completed_at: new Date(),
-    conclusion: 'action_required',
-    output: {
-      title: 'Work in progress',
-      summary: 'The title "[WIP] Test" contains "WIP".\n\nYou can override the status by adding "@wip ready for review" to the end of the pull request description',
-      text: 'By default, WIP only checks the pull request title for the terms "WIP", "Work in progress" and "🚧".\n\nYou can configure both the terms and the location that the WIP app will look for by signing up for the pro plan: https://github.com/marketplace/wip.\nAll revenue will be donated to [Rails Girls Summer of Code](https://railsgirlssummerofcode.org/).'
-    },
-    actions: [{
-      label: '✅ Ready for review',
-      description: 'override status to "success"',
-      identifier: 'override:1'
-    }]
-  })
-  t.is(this.logMock.info.callCount, 1)
-  t.deepEqual(this.logMock.info.lastCall.arg, {
-    accountId: 1,
-    plan: 'free',
-    status: {
-      wip: true,
-      changed: true,
-      location: 'title',
-      match: 'WIP',
-      text: '[WIP] Test'
-    },
-    title: '[WIP] Test',
-    url: 'https://github.com/wip/app/issues/1'
-  })
+  await this.app.receive(require('./events/new-pull-request-with-wip-title.json'))
+
+  // create new check run
+  const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.conclusion, 'action_required')
+  t.deepEqual(createCheckParams.actions, [{
+    label: '✅ Ready for review',
+    description: 'override status to "success"',
+    identifier: 'override:1'
+  }])
+  t.is(createCheckParams.output.title, 'Work in progress')
+  t.match(createCheckParams.output.summary, /The title "\[WIP\] Test" contains "WIP"/)
+  t.match(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
+
+  // check resulting logs
+  const logParams = this.logMock.info.lastCall.arg
+  t.is(logParams.status.wip, true)
+  t.is(logParams.status.changed, true)
+  t.is(logParams.status.location, 'title')
+  t.is(logParams.status.match, 'WIP')
+  t.is(logParams.status.text, '[WIP] Test')
+
   t.end()
 })
 
 test('pending pull request with "Test" title', async function (t) {
-  const newPullRequestWithTestTitle = require('./events/new-pull-request-with-test-title.json')
+  // simulate existing check runs
   this.githubMock.checks.listForRef.resolveWith({
     data: {
       check_runs: [{
@@ -141,39 +126,17 @@ test('pending pull request with "Test" title', async function (t) {
     }
   })
 
-  await this.app.receive(newPullRequestWithTestTitle)
-  t.is(this.githubMock.checks.create.callCount, 1)
-  t.deepEqual(this.githubMock.checks.create.lastCall.arg, { owner: 'wip',
-    repo: 'app',
-    name: 'WIP (beta)',
-    head_branch: '',
-    head_sha: 'sha123',
-    status: 'completed',
-    completed_at: new Date(),
-    conclusion: 'success',
-    output: {
-      title: 'Ready for review',
-      summary: 'No match found based on configuration',
-      text: 'By default, WIP only checks the pull request title for the terms "WIP", "Work in progress" and "🚧".\n\nYou can configure both the terms and the location that the WIP app will look for by signing up for the pro plan: https://github.com/marketplace/wip.\nAll revenue will be donated to [Rails Girls Summer of Code](https://railsgirlssummerofcode.org/).'
-    },
-    actions: []
-  })
-  t.is(this.logMock.info.callCount, 1)
-  t.deepEqual(this.logMock.info.lastCall.arg, {
-    accountId: 1,
-    plan: 'free',
-    status: {
-      changed: true,
-      wip: false
-    },
-    title: 'Test',
-    url: 'https://github.com/wip/app/issues/1'
-  })
+  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
+
+  // create new check run
+  const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.conclusion, 'success')
+
   t.end()
 })
 
 test('ready pull request with "[WIP] Test" title', async function (t) {
-  const newPullRequestWithWipTitle = require('./events/new-pull-request-with-wip-title.json')
+  // simulate existing check runs
   this.githubMock.checks.listForRef.resolveWith({
     data: {
       check_runs: [{
@@ -182,47 +145,22 @@ test('ready pull request with "[WIP] Test" title', async function (t) {
     }
   })
 
-  await this.app.receive(newPullRequestWithWipTitle)
-  t.is(this.githubMock.checks.create.callCount, 1)
-  t.deepEqual(this.githubMock.checks.create.lastCall.arg, {
-    owner: 'wip',
-    repo: 'app',
-    name: 'WIP (beta)',
-    head_branch: '',
-    head_sha: 'sha123',
-    status: 'completed',
-    completed_at: new Date(),
-    conclusion: 'action_required',
-    output: {
-      title: 'Work in progress',
-      summary: 'The title "[WIP] Test" contains "WIP".\n\nYou can override the status by adding "@wip ready for review" to the end of the pull request description',
-      text: 'By default, WIP only checks the pull request title for the terms "WIP", "Work in progress" and "🚧".\n\nYou can configure both the terms and the location that the WIP app will look for by signing up for the pro plan: https://github.com/marketplace/wip.\nAll revenue will be donated to [Rails Girls Summer of Code](https://railsgirlssummerofcode.org/).'
-    },
-    actions: [{
-      label: '✅ Ready for review',
-      description: 'override status to "success"',
-      identifier: 'override:1'
-    }]
-  })
-  t.is(this.logMock.info.callCount, 1)
-  t.deepEqual(this.logMock.info.lastCall.arg, {
-    accountId: 1,
-    plan: 'free',
-    status: {
-      changed: true,
-      location: 'title',
-      match: 'WIP',
-      text: '[WIP] Test',
-      wip: true
-    },
-    title: '[WIP] Test',
-    url: 'https://github.com/wip/app/issues/1'
-  })
+  await this.app.receive(require('./events/new-pull-request-with-wip-title.json'))
+
+  // create new check run
+  const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.conclusion, 'action_required')
+
+  // check resulting logs
+  const logParams = this.logMock.info.lastCall.arg
+  t.is(logParams.status.wip, true)
+  t.is(logParams.status.changed, true)
+
   t.end()
 })
 
 test('pending pull request with "[WIP] Test" title', async function (t) {
-  const newPullRequestWithWipTitle = require('./events/new-pull-request-with-wip-title.json')
+  // simulate existing check runs
   this.githubMock.checks.listForRef.resolveWith({
     data: {
       check_runs: [{
@@ -231,27 +169,21 @@ test('pending pull request with "[WIP] Test" title', async function (t) {
     }
   })
 
-  await this.app.receive(newPullRequestWithWipTitle)
+  await this.app.receive(require('./events/new-pull-request-with-wip-title.json'))
+
+  // does not create new check run
   t.is(this.githubMock.checks.create.callCount, 0)
-  t.is(this.logMock.info.callCount, 1)
-  t.deepEqual(this.logMock.info.lastCall.arg, {
-    accountId: 1,
-    plan: 'free',
-    status: {
-      changed: false,
-      location: 'title',
-      match: 'WIP',
-      text: '[WIP] Test',
-      wip: true
-    },
-    title: '[WIP] Test',
-    url: 'https://github.com/wip/app/issues/1'
-  })
+
+  // check resulting logs
+  const logParams = this.logMock.info.lastCall.arg
+  t.is(logParams.status.wip, true)
+  t.is(logParams.status.changed, false)
+
   t.end()
 })
 
 test('ready pull request with "Test" title', async function (t) {
-  const newPullRequestWithTestTitle = require('./events/new-pull-request-with-test-title.json')
+  // simulate existing check runs
   this.githubMock.checks.listForRef.resolveWith({
     data: {
       check_runs: [{
@@ -260,40 +192,44 @@ test('ready pull request with "Test" title', async function (t) {
     }
   })
 
-  await this.app.receive(newPullRequestWithTestTitle)
+  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
+
+  // does not create new check run
   t.is(this.githubMock.checks.create.callCount, 0)
-  t.is(this.logMock.info.callCount, 1)
-  t.deepEqual(this.logMock.info.lastCall.arg, {
-    accountId: 1,
-    plan: 'free',
-    status: {
-      changed: false,
-      wip: false
-    },
-    title: 'Test',
-    url: 'https://github.com/wip/app/issues/1'
-  })
+
+  // check resulting logs
+  const logParams = this.logMock.info.lastCall.arg
+  t.is(logParams.status.wip, false)
+  t.is(logParams.status.changed, false)
+
   t.end()
 })
 
 test('request error', async function (t) {
-  const newPullRequestWithTestTitle = require('./events/new-pull-request-with-test-title.json')
+  // simulate request error
   this.githubMock.checks.listForRef.rejectWith(SERVER_ERROR)
-
   this.logMock.error = simple.mock()
-  this.logMock.trace = simple.mock()
-  await this.app.receive(newPullRequestWithTestTitle)
+
+  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
+
+  // does not try to create new check run
   t.is(this.githubMock.checks.create.callCount, 0)
-  t.is(this.logMock.error.lastCall.arg.accountId, 1)
-  t.is(this.logMock.error.lastCall.arg.plan, 'free')
-  t.is(this.logMock.error.lastCall.arg.status.wip, false)
-  t.is(this.logMock.error.lastCall.arg.title, 'Test')
-  t.is(this.logMock.error.lastCall.arg.url, 'https://github.com/wip/app/issues/1')
-  t.is(this.logMock.error.lastCall.arg.error.code, 500)
+
+  // check resulting logs
+  const logParams = this.logMock.error.lastCall.arg
+  t.is(logParams.accountId, 1)
+  t.is(logParams.plan, 'free')
+  t.is(logParams.status.wip, false)
+  t.is(logParams.title, 'Test')
+  t.is(logParams.url, 'https://github.com/wip/app/issues/1')
+  t.is(logParams.error.code, 500)
+  t.is(logParams.error.message, 'Ooops')
+
   t.end()
 })
 
 test('active marketplace "free" plan', async function (t) {
+  // simulate that user subscribed to free plan
   this.githubMock.apps.checkMarketplaceListingAccount = simple.mock().resolveWith({
     data: {
       marketplace_purchase: {
@@ -303,41 +239,24 @@ test('active marketplace "free" plan', async function (t) {
       }
     }
   })
+
+  // simulate check runs
   this.githubMock.checks.listForRef.resolveWith({
     data: {
       check_runs: []
     }
   })
-  const newPullRequestWithTestTitle = require('./events/new-pull-request-with-test-title.json')
 
-  await this.app.receive(newPullRequestWithTestTitle)
-  t.is(this.githubMock.checks.create.callCount, 1)
+  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
 
-  t.deepEqual(this.githubMock.checks.create.lastCall.arg, { owner: 'wip',
-    repo: 'app',
-    name: 'WIP (beta)',
-    head_branch: '',
-    head_sha: 'sha123',
-    status: 'completed',
-    completed_at: new Date(),
-    conclusion: 'success',
-    output: {
-      title: 'Ready for review',
-      summary: 'No match found based on configuration',
-      text: 'By default, WIP only checks the pull request title for the terms "WIP", "Work in progress" and "🚧".\n\nYou can configure both the terms and the location that the WIP app will look for by signing up for the pro plan: https://github.com/marketplace/wip.\nAll revenue will be donated to [Rails Girls Summer of Code](https://railsgirlssummerofcode.org/).'
-    },
-    actions: []
-  })
-  t.is(this.logMock.info.callCount, 1)
-  t.deepEqual(this.logMock.info.lastCall.arg, {
-    accountId: 1,
-    plan: 'free',
-    status: {
-      changed: true,
-      wip: false
-    },
-    title: 'Test',
-    url: 'https://github.com/wip/app/issues/1'
-  })
+  // create new check run
+  const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.conclusion, 'success')
+
+  // check resulting logs
+  const logParams = this.logMock.info.lastCall.arg
+  t.is(logParams.status.wip, false)
+  t.is(logParams.status.changed, true)
+
   t.end()
 })
