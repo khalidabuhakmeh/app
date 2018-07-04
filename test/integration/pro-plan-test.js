@@ -498,3 +498,36 @@ test('override', async function (t) {
 
   t.end()
 })
+
+test('pending pull request with override', {only: true}, async function (t) {
+  // no configuration
+  this.githubMock.repos.getContent.rejectWith(NOT_FOUND_ERROR)
+
+  // no existing check runs
+  this.githubMock.checks.listForRef.resolveWith({
+    data: {
+      check_runs: [{
+        conclusion: 'action_required',
+        output: {
+          title: 'Ready for review (override)'
+        }
+      }]
+    }
+  })
+
+  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
+
+  // create new check run
+  const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.conclusion, 'success')
+  t.deepEqual(createCheckParams.actions, [])
+  t.is(createCheckParams.output.title, 'Ready for review')
+  t.match(createCheckParams.output.summary, /No match found based on configuration/)
+
+  // check resulting logs
+  const logParams = this.logMock.info.lastCall.arg
+  t.is(logParams.status.wip, false)
+  t.is(logParams.status.changed, true)
+
+  t.end()
+})

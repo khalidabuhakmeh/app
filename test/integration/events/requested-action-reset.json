@@ -1,0 +1,16 @@
+{
+  "event": "check_run",
+  "payload": {
+    "action": "requested_action",
+    "requested_action": {
+      "identifier": "reset:1"
+    },
+    "repository": {
+      "name": "app",
+      "owner": {
+        "id": 1,
+        "login": "wip"
+      }
+    }
+  }
+}

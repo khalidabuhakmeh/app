@@ -210,29 +210,6 @@ test('ready pull request with "Test" title', async function (t) {
   t.end()
 })
 
-test('request error', async function (t) {
-  // simulate request error
-  this.githubMock.checks.listForRef.rejectWith(SERVER_ERROR)
-  this.logMock.error = simple.mock()
-
-  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
-
-  // does not try to create new check run
-  t.is(this.githubMock.checks.create.callCount, 0)
-
-  // check resulting logs
-  const logParams = this.logMock.error.lastCall.arg
-  t.is(logParams.accountId, 1)
-  t.is(logParams.plan, 'free')
-  t.is(logParams.status.wip, false)
-  t.is(logParams.title, 'Test')
-  t.is(logParams.url, 'https://github.com/wip/app/issues/1')
-  t.is(logParams.error.code, 500)
-  t.is(logParams.error.message, 'Ooops')
-
-  t.end()
-})
-
 test('active marketplace "free" plan', async function (t) {
   // simulate that user subscribed to free plan
   this.githubMock.apps.checkMarketplaceListingAccount = simple.mock().resolveWith({
@@ -262,6 +239,29 @@ test('active marketplace "free" plan', async function (t) {
   const logParams = this.logMock.info.lastCall.arg
   t.is(logParams.status.wip, false)
   t.is(logParams.status.changed, true)
+
+  t.end()
+})
+
+test('request error', async function (t) {
+  // simulate request error
+  this.githubMock.checks.listForRef.rejectWith(SERVER_ERROR)
+  this.logMock.error = simple.mock()
+
+  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
+
+  // does not try to create new check run
+  t.is(this.githubMock.checks.create.callCount, 0)
+
+  // check resulting logs
+  const logParams = this.logMock.error.lastCall.arg
+  t.is(logParams.accountId, 1)
+  t.is(logParams.plan, 'free')
+  t.is(logParams.status.wip, false)
+  t.is(logParams.title, 'Test')
+  t.is(logParams.url, 'https://github.com/wip/app/issues/1')
+  t.is(logParams.error.code, 500)
+  t.is(logParams.error.message, 'Ooops')
 
   t.end()
 })
