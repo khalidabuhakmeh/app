@@ -1,5 +1,5 @@
-const {Application} = require('probot')
 const lolex = require('lolex')
+const {Application} = require('probot')
 const simple = require('simple-mock')
 const {beforeEach, test} = require('tap')
 
@@ -131,6 +131,11 @@ test('pending pull request with "Test" title', async function (t) {
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
   t.is(createCheckParams.conclusion, 'success')
+
+  // check resulting logs
+  const logParams = this.logMock.info.lastCall.arg
+  t.is(logParams.status.wip, false)
+  t.is(logParams.status.changed, true)
 
   t.end()
 })
