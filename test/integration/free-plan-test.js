@@ -102,12 +102,54 @@ test('new pull request with "[WIP] Test" title', async function (t) {
   t.end()
 })
 
+test('new pull request with "[Work in Progress] Test" title', async function (t) {
+  await this.app.receive(require('./events/new-pull-request-with-work-in-progress-title.json'))
+
+  // create new check run
+  const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.status, 'in_progress')
+  t.is(createCheckParams.output.title, 'Work in progress')
+  t.match(createCheckParams.output.summary, /The title "\[Work in Progress\] Test" contains "Work in Progress"/)
+  t.notMatch(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
+
+  // check resulting logs
+  const logParams = this.logMock.info.lastCall.arg
+  t.is(logParams.status.wip, true)
+  t.is(logParams.status.changed, true)
+  t.is(logParams.status.location, 'title')
+  t.is(logParams.status.match, 'Work in Progress')
+  t.is(logParams.status.text, '[Work in Progress] Test')
+
+  t.end()
+})
+
+test('new pull request with "🚧 Test" title', async function (t) {
+  await this.app.receive(require('./events/new-pull-request-with-emoji-title.json'))
+
+  // create new check run
+  const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.status, 'in_progress')
+  t.is(createCheckParams.output.title, 'Work in progress')
+  t.match(createCheckParams.output.summary, /The title "🚧 Test" contains "🚧"/)
+  t.notMatch(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
+
+  // check resulting logs
+  const logParams = this.logMock.info.lastCall.arg
+  t.is(logParams.status.wip, true)
+  t.is(logParams.status.changed, true)
+  t.is(logParams.status.location, 'title')
+  t.is(logParams.status.match, '🚧')
+  t.is(logParams.status.text, '🚧 Test')
+
+  t.end()
+})
+
 test('pending pull request with "Test" title', async function (t) {
   // simulate existing check runs
   this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
-        conclusion: 'action_required'
+        status: 'pending'
       }]
     }
   })
@@ -156,7 +198,7 @@ test('pending pull request with "[WIP] Test" title', async function (t) {
   this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
-        conclusion: 'action_required'
+        status: 'pending'
       }]
     }
   })

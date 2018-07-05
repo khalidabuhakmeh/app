@@ -123,7 +123,7 @@ test('pending pull request with "Test" title', async function (t) {
   this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
-        conclusion: 'action_required'
+        status: 'pending'
       }]
     }
   })
@@ -172,7 +172,7 @@ test('pending pull request with "[WIP] Test" title', async function (t) {
   this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
-        conclusion: 'action_required'
+        status: 'pending'
       }]
     }
   })
@@ -429,12 +429,12 @@ test('override', async function (t) {
   t.end()
 })
 
-test('pending pull request with override', {only: true}, async function (t) {
+test('pending pull request with override', async function (t) {
   // no existing check runs
   this.githubMock.checks.listForRef = simple.mock().resolveWith({
     data: {
       check_runs: [{
-        conclusion: 'action_required',
+        status: 'in_progress',
         output: {
           title: 'Ready for review (override)'
         }
@@ -455,6 +455,33 @@ test('pending pull request with override', {only: true}, async function (t) {
   // check resulting logs
   const logParams = this.logMock.info.lastCall.arg
   t.is(logParams.status.wip, false)
+  t.is(logParams.status.changed, true)
+
+  t.end()
+})
+
+test('pending pull request with override and "[WIP] test" title', async function (t) {
+  // no existing check runs
+  this.githubMock.checks.listForRef = simple.mock().resolveWith({
+    data: {
+      check_runs: [{
+        status: 'in_progress',
+        output: {
+          title: 'Ready for review (override)'
+        }
+      }]
+    }
+  })
+
+  await this.app.receive(require('./events/new-pull-request-with-wip-title.json'))
+
+  // create new check run
+  const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.status, 'in_progress')
+
+  // check resulting logs
+  const logParams = this.logMock.info.lastCall.arg
+  t.is(logParams.status.wip, true)
   t.is(logParams.status.changed, true)
 
   t.end()
