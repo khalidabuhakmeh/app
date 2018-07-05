@@ -68,6 +68,7 @@ test('new pull request with "Test" title', async function (t) {
   t.is(createCheckParams.name, 'WIP (beta)')
   t.is(createCheckParams.status, 'completed')
   t.same(createCheckParams.completed_at, NOW)
+  t.is(createCheckParams.status, 'completed')
   t.is(createCheckParams.conclusion, 'success')
   t.is(createCheckParams.output.title, 'Ready for review')
   t.match(createCheckParams.output.summary, /No match found based on configuration/)
@@ -96,7 +97,7 @@ test('new pull request with "[WIP] Test" title', async function (t) {
 
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
-  t.is(createCheckParams.conclusion, 'action_required')
+  t.is(createCheckParams.status, 'in_progress')
   t.deepEqual(createCheckParams.actions, [{
     label: '✅ Ready for review',
     description: 'override status to "success"',
@@ -131,6 +132,7 @@ test('pending pull request with "Test" title', async function (t) {
 
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.status, 'completed')
   t.is(createCheckParams.conclusion, 'success')
 
   // check resulting logs
@@ -155,7 +157,7 @@ test('ready pull request with "[WIP] Test" title', async function (t) {
 
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
-  t.is(createCheckParams.conclusion, 'action_required')
+  t.is(createCheckParams.status, 'in_progress')
 
   // check resulting logs
   const logParams = this.logMock.info.lastCall.arg
@@ -227,9 +229,9 @@ test('custom term: 🚧', async function (t) {
   t.is(createCheckParams.owner, 'wip')
   t.is(createCheckParams.repo, 'app')
   t.is(createCheckParams.name, 'WIP (beta)')
-  t.is(createCheckParams.status, 'completed')
-  t.same(createCheckParams.completed_at, NOW)
-  t.is(createCheckParams.conclusion, 'action_required')
+  t.is(createCheckParams.status, 'in_progress')
+  t.is(createCheckParams.completed_at, undefined)
+  t.is(createCheckParams.status, 'in_progress')
   t.is(createCheckParams.output.title, 'Work in progress')
   t.match(createCheckParams.output.summary, /The title "🚧 Test" contains "🚧"/)
   t.match(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
@@ -272,7 +274,7 @@ test('custom location: label_name', async function (t) {
 
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
-  t.is(createCheckParams.conclusion, 'action_required')
+  t.is(createCheckParams.status, 'in_progress')
   t.match(createCheckParams.output.summary, /The label "WIP" contains "WIP"/)
   t.match(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
   t.match(createCheckParams.output.text, /locations: label_name/)
@@ -308,7 +310,7 @@ test('custom location: commits', async function (t) {
 
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
-  t.is(createCheckParams.conclusion, 'action_required')
+  t.is(createCheckParams.status, 'in_progress')
   t.match(createCheckParams.output.summary, /The commit subject "WIP: test" contains "WIP"/)
   t.match(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
   t.match(createCheckParams.output.text, /locations: commit_subject/)
@@ -359,7 +361,7 @@ test('complex config', async function (t) {
 
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
-  t.is(createCheckParams.conclusion, 'action_required')
+  t.is(createCheckParams.status, 'in_progress')
   t.match(createCheckParams.output.summary, /The commit subject "fixup! test" contains "fixup!"/)
   t.match(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
   t.match(createCheckParams.output.text, /locations: commit_subject/)
@@ -408,6 +410,7 @@ test('override', async function (t) {
 
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.status, 'completed')
   t.is(createCheckParams.conclusion, 'success')
   t.deepEqual(createCheckParams.actions, [{
     label: '🔄 Reset',
@@ -443,6 +446,7 @@ test('pending pull request with override', {only: true}, async function (t) {
 
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.status, 'completed')
   t.is(createCheckParams.conclusion, 'success')
   t.deepEqual(createCheckParams.actions, [])
   t.is(createCheckParams.output.title, 'Ready for review')

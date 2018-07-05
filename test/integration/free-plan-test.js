@@ -56,6 +56,7 @@ test('new pull request with "Test" title', async function (t) {
   t.is(createCheckParams.name, 'WIP (beta)')
   t.is(createCheckParams.status, 'completed')
   t.same(createCheckParams.completed_at, NOW)
+  t.is(createCheckParams.status, 'completed')
   t.is(createCheckParams.conclusion, 'success')
   t.is(createCheckParams.output.title, 'Ready for review')
   t.match(createCheckParams.output.summary, /No match found based on configuration/)
@@ -85,15 +86,11 @@ test('new pull request with "[WIP] Test" title', async function (t) {
 
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
-  t.is(createCheckParams.conclusion, 'action_required')
-  t.deepEqual(createCheckParams.actions, [{
-    label: '✅ Ready for review',
-    description: 'override status to "success"',
-    identifier: 'override:1'
-  }])
+  t.is(createCheckParams.status, 'in_progress')
+  t.deepEqual(createCheckParams.actions, [])
   t.is(createCheckParams.output.title, 'Work in progress')
   t.match(createCheckParams.output.summary, /The title "\[WIP\] Test" contains "WIP"/)
-  t.match(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
+  t.notMatch(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
 
   // check resulting logs
   const logParams = this.logMock.info.lastCall.arg
@@ -120,6 +117,7 @@ test('pending pull request with "Test" title', async function (t) {
 
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.status, 'completed')
   t.is(createCheckParams.conclusion, 'success')
 
   // check resulting logs
@@ -144,7 +142,7 @@ test('ready pull request with "[WIP] Test" title', async function (t) {
 
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
-  t.is(createCheckParams.conclusion, 'action_required')
+  t.is(createCheckParams.status, 'in_progress')
 
   // check resulting logs
   const logParams = this.logMock.info.lastCall.arg
@@ -216,6 +214,7 @@ test('active marketplace "free" plan', async function (t) {
 
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
+  t.is(createCheckParams.status, 'completed')
   t.is(createCheckParams.conclusion, 'success')
 
   // check resulting logs
