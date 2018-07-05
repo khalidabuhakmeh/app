@@ -54,7 +54,7 @@ test('new pull request with "Test" title', async function (t) {
   // check for current status
   t.is(this.githubMock.checks.listForRef.callCount, 1)
   t.deepEqual(this.githubMock.checks.listForRef.lastCall.arg, {
-    check_name: 'WIP (beta)',
+    check_name: 'WIP',
     owner: 'wip',
     repo: 'app',
     ref: 'sha123'
@@ -65,7 +65,7 @@ test('new pull request with "Test" title', async function (t) {
   t.is(this.githubMock.checks.create.callCount, 1)
   t.is(createCheckParams.owner, 'wip')
   t.is(createCheckParams.repo, 'app')
-  t.is(createCheckParams.name, 'WIP (beta)')
+  t.is(createCheckParams.name, 'WIP')
   t.is(createCheckParams.status, 'completed')
   t.same(createCheckParams.completed_at, NOW)
   t.is(createCheckParams.status, 'completed')
@@ -228,7 +228,7 @@ test('custom term: 🚧', async function (t) {
   t.is(this.githubMock.checks.create.callCount, 1)
   t.is(createCheckParams.owner, 'wip')
   t.is(createCheckParams.repo, 'app')
-  t.is(createCheckParams.name, 'WIP (beta)')
+  t.is(createCheckParams.name, 'WIP')
   t.is(createCheckParams.status, 'in_progress')
   t.is(createCheckParams.completed_at, undefined)
   t.is(createCheckParams.status, 'in_progress')
@@ -483,6 +483,17 @@ test('pending pull request with override and "[WIP] test" title', async function
   const logParams = this.logMock.info.lastCall.arg
   t.is(logParams.status.wip, true)
   t.is(logParams.status.changed, true)
+
+  t.end()
+})
+
+test('custom APP_NAME', {only: true}, async function (t) {
+  simple.mock(process.env, 'APP_NAME', 'WIP (beta)')
+  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
+  simple.restore()
+
+  t.is(this.githubMock.checks.listForRef.lastCall.arg.check_name, 'WIP (beta)')
+  t.is(this.githubMock.checks.create.lastCall.arg.name, 'WIP (beta)')
 
   t.end()
 })

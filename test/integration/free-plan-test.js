@@ -45,7 +45,7 @@ test('new pull request with "Test" title', async function (t) {
     owner: 'wip',
     repo: 'app',
     ref: 'sha123',
-    check_name: 'WIP (beta)'
+    check_name: 'WIP'
   })
 
   // create new check run
@@ -53,7 +53,7 @@ test('new pull request with "Test" title', async function (t) {
   t.is(this.githubMock.checks.create.callCount, 1)
   t.is(createCheckParams.owner, 'wip')
   t.is(createCheckParams.repo, 'app')
-  t.is(createCheckParams.name, 'WIP (beta)')
+  t.is(createCheckParams.name, 'WIP')
   t.is(createCheckParams.status, 'completed')
   t.same(createCheckParams.completed_at, NOW)
   t.is(createCheckParams.status, 'completed')
@@ -285,6 +285,17 @@ test('request error', async function (t) {
   t.is(logParams.url, 'https://github.com/wip/app/issues/1')
   t.is(logParams.error.code, 500)
   t.is(logParams.error.message, 'Ooops')
+
+  t.end()
+})
+
+test('custom APP_NAME', async function (t) {
+  simple.mock(process.env, 'APP_NAME', 'WIP (beta)')
+  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
+  simple.restore()
+
+  t.is(this.githubMock.checks.listForRef.lastCall.arg.check_name, 'WIP (beta)')
+  t.is(this.githubMock.checks.create.lastCall.arg.name, 'WIP (beta)')
 
   t.end()
 })

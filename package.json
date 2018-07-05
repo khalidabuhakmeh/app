@@ -65,6 +65,7 @@
     "alias": "wip-beta",
     "env": {
       "APP_ID": "@beta-app-id",
+      "APP_NAME": "WIP (beta)",
       "LOG_LEVEL": "@beta-log-level",
       "LOGDNA_API_KEY": "@logdna-api-key",
       "NODE_ENV": "production",
