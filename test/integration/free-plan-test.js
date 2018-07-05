@@ -63,7 +63,7 @@ test('new pull request with "Test" title', async function (t) {
   t.match(createCheckParams.output.text, /WIP only checks the pull request title for the terms "WIP", "Work in progress" and "🚧"/)
   t.match(createCheckParams.output.text, /You can configure both the terms and the location that the WIP app will look for by signing up for the pro plan/)
   t.match(createCheckParams.output.text, /All revenue will be donated/)
-  t.deepEqual(createCheckParams.actions, [])
+  t.is(createCheckParams.actions, undefined)
 
   // check resulting logs
   t.is(this.logMock.info.callCount, 1)
@@ -87,7 +87,6 @@ test('new pull request with "[WIP] Test" title', async function (t) {
   // create new check run
   const createCheckParams = this.githubMock.checks.create.lastCall.arg
   t.is(createCheckParams.status, 'in_progress')
-  t.deepEqual(createCheckParams.actions, [])
   t.is(createCheckParams.output.title, 'Work in progress')
   t.match(createCheckParams.output.summary, /The title "\[WIP\] Test" contains "WIP"/)
   t.notMatch(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
