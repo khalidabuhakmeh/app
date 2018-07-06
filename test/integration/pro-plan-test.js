@@ -246,7 +246,7 @@ test('custom term: 🚧', async function (t) {
   }])
 
   // check resulting logs
-  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1')
+  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1 - "🚧" found in title')
   t.is(this.logMock.info.callCount, 1)
   t.deepEqual(this.logMock.child.lastCall.arg, {
     name: 'wip',

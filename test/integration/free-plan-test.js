@@ -98,7 +98,7 @@ test('new pull request with "[WIP] Test" title', async function (t) {
   t.notMatch(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
 
   // check resulting logs
-  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1')
+  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1 - "WIP" found in title')
   const logParams = this.logMock.child.lastCall.arg
   t.is(logParams.wip, true)
   t.is(logParams.change, true)
@@ -119,7 +119,7 @@ test('new pull request with "[Work in Progress] Test" title', async function (t)
   t.notMatch(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
 
   // check resulting logs
-  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1')
+  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1 - "Work in Progress" found in title')
   const logParams = this.logMock.child.lastCall.arg
   t.is(logParams.location, 'title')
   t.is(logParams.match, 'Work in Progress')
@@ -138,7 +138,7 @@ test('new pull request with "🚧 Test" title', async function (t) {
   t.notMatch(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
 
   // check resulting logs
-  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1')
+  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1 - "🚧" found in title')
   const logParams = this.logMock.child.lastCall.arg
   t.is(logParams.location, 'title')
   t.is(logParams.match, '🚧')
@@ -186,7 +186,7 @@ test('ready pull request with "[WIP] Test" title', async function (t) {
   t.is(createCheckParams.status, 'in_progress')
 
   // check resulting logs
-  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1')
+  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1 - "WIP" found in title')
 
   t.end()
 })
