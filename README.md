@@ -13,7 +13,49 @@
 
 ## Usage
 
-Find all instructions at https://github.com/marketplace/wip. I encourage you to [subscribe to updates](https://github.com/wip/app/issues/89) if you use the app.
+By default, WIP is setting a pull request status to pending if it finds one of the following terms in the pull request titles
+
+- `wip`
+- `work in progress`
+- `🚧`
+
+The pro plan allows for [configuration](#configuration) of both the terms and the locations that the app is looking for the terms. The pending status can be overwritten by adding `@wip ready for review` to the pull request body.
+
+## Configuration
+
+Repositories belonging to an account or organization with a Pro plan subscription can be configured by creating a `.github/wip.yml` file. Two options can be configured
+
+1. **locations**: any of `title` (pull request title), `label_name` and `commit_subject` (1st line of the pull request’s commit messages). Default: `title`
+2. **terms**: list of strings to look for in the defined locations. All terms are case-insensitive. Default: `wip`, `work in progress` and `🚧`
+
+Example:
+
+```yaml
+locations:
+- title
+- label_name
+- commit_subject
+terms:
+- do not merge
+- ⛔
+```
+
+The above configuration makes WIP look for "do not merge" and "⛔" in the pull request title, all assigned label names and all commit subjects.
+
+You can also configure different terms for different locations:
+
+```yaml
+- terms: 🚧
+  locations:
+  - title
+  - label_name
+- terms:
+  - fixup!
+  - squash!
+  locations: commit_subject
+```
+
+The above configuration looks first for `🚧` in the pull request title and assigned label names. After that it looks for `fixup!` and `squash!` in the commit subjects.
 
 ## About WIP
 
