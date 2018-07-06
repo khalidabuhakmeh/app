@@ -79,7 +79,7 @@ test('new pull request with "Test" title', async function (t) {
   t.is(this.logMock.info.lastCall.arg, '✅ wip/app#1')
   t.is(this.logMock.info.callCount, 1)
   t.deepEqual(this.logMock.child.lastCall.arg, {
-    name: 'wip',
+    name: 'WIP',
     account: 1,
     plan: 'pro',
     repo: 1,
@@ -249,7 +249,7 @@ test('custom term: 🚧', async function (t) {
   t.is(this.logMock.info.lastCall.arg, '⏳ wip/app#1 - "🚧" found in title')
   t.is(this.logMock.info.callCount, 1)
   t.deepEqual(this.logMock.child.lastCall.arg, {
-    name: 'wip',
+    name: 'WIP',
     account: 1,
     repo: 1,
     private: false,
@@ -493,6 +493,7 @@ test('custom APP_NAME', {only: true}, async function (t) {
 
   t.is(this.githubMock.checks.listForRef.lastCall.arg.check_name, 'WIP (beta)')
   t.is(this.githubMock.checks.create.lastCall.arg.name, 'WIP (beta)')
+  t.is(this.logMock.child.lastCall.arg.name, 'WIP (beta)')
 
   t.end()
 })

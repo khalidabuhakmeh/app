@@ -69,7 +69,7 @@ test('new pull request with "Test" title', async function (t) {
   t.is(this.logMock.info.callCount, 1)
   t.is(this.logMock.info.lastCall.arg, '✅ wip/app#1')
   t.deepEqual(this.logMock.child.lastCall.arg, {
-    name: 'wip',
+    name: 'WIP',
     account: 1,
     plan: 'free',
     repo: 1,
@@ -280,6 +280,7 @@ test('custom APP_NAME', async function (t) {
 
   t.is(this.githubMock.checks.listForRef.lastCall.arg.check_name, 'WIP (beta)')
   t.is(this.githubMock.checks.create.lastCall.arg.name, 'WIP (beta)')
+  t.is(this.logMock.child.lastCall.arg.name, 'WIP (beta)')
 
   t.end()
 })

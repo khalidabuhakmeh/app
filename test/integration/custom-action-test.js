@@ -56,7 +56,7 @@ test('"override" action', async function (t) {
   t.is(this.logMock.info.lastCall.arg, '🙈 app/wip#1')
   t.is(this.logMock.info.callCount, 1)
   t.deepEqual(this.logMock.child.lastCall.arg, {
-    name: 'wip',
+    name: 'WIP',
     account: 1,
     repo: 1,
     private: false,
@@ -98,7 +98,7 @@ test('"override" action (pull request without body)', async function (t) {
   t.is(this.logMock.info.lastCall.arg, '🙈 app/wip#1')
   t.is(this.logMock.info.callCount, 1)
   t.deepEqual(this.logMock.child.lastCall.arg, {
-    name: 'wip',
+    name: 'WIP',
     account: 1,
     repo: 1,
     private: false,
@@ -134,7 +134,7 @@ test('"reset" action', async function (t) {
   t.is(this.logMock.info.lastCall.arg, '🙉 app/wip#1')
   t.is(this.logMock.info.callCount, 1)
   t.deepEqual(this.logMock.child.lastCall.arg, {
-    name: 'wip',
+    name: 'WIP',
     account: 1,
     repo: 1,
     private: false,
