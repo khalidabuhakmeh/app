@@ -74,6 +74,7 @@ test('new pull request with "Test" title', async function (t) {
     account: 1,
     plan: 'free',
     repo: 1,
+    private: false,
     event: 'pull_request',
     action: 'opened',
     wip: false,
