@@ -15,9 +15,7 @@ beforeEach(function (done) {
     pullRequests: {
       get: simple.mock().resolveWith({
         data: {
-          title: '[WIP] test',
-          body: 'foo bar',
-          html_url: 'https://github.com/wip/app/issues/1'
+          body: 'foo bar'
         }
       }),
       update: simple.mock().resolveWith({})
@@ -55,12 +53,16 @@ test('"override" action', async function (t) {
   })
 
   // check resulting logs
+  t.is(this.logMock.info.lastCall.arg, '🙈 app/wip#1')
   t.is(this.logMock.info.callCount, 1)
-  t.deepEqual(this.logMock.info.lastCall.arg, {
-    accountId: 1,
-    action: 'override',
-    title: '[WIP] test',
-    url: 'https://github.com/wip/app/issues/1'
+  t.deepEqual(this.logMock.child.lastCall.arg, {
+    name: 'wip',
+    account: 1,
+    repo: 1,
+    private: false,
+    event: 'check_run',
+    action: 'requested_action',
+    requested: 'override'
   })
 
   t.end()
@@ -69,9 +71,7 @@ test('"override" action', async function (t) {
 test('"override" action (pull request without body)', async function (t) {
   this.githubMock.pullRequests.get = simple.mock().resolveWith({
     data: {
-      title: '[WIP] test',
-      body: '',
-      html_url: 'https://github.com/wip/app/issues/1'
+      body: ''
     }
   })
 
@@ -95,12 +95,16 @@ test('"override" action (pull request without body)', async function (t) {
   })
 
   // check resulting logs
+  t.is(this.logMock.info.lastCall.arg, '🙈 app/wip#1')
   t.is(this.logMock.info.callCount, 1)
-  t.deepEqual(this.logMock.info.lastCall.arg, {
-    accountId: 1,
-    action: 'override',
-    title: '[WIP] test',
-    url: 'https://github.com/wip/app/issues/1'
+  t.deepEqual(this.logMock.child.lastCall.arg, {
+    name: 'wip',
+    account: 1,
+    repo: 1,
+    private: false,
+    event: 'check_run',
+    action: 'requested_action',
+    requested: 'override'
   })
 
   t.end()
@@ -127,12 +131,16 @@ test('"reset" action', async function (t) {
   })
 
   // check resulting logs
+  t.is(this.logMock.info.lastCall.arg, '🙉 app/wip#1')
   t.is(this.logMock.info.callCount, 1)
-  t.deepEqual(this.logMock.info.lastCall.arg, {
-    accountId: 1,
-    action: 'reset',
-    title: '[WIP] test',
-    url: 'https://github.com/wip/app/issues/1'
+  t.deepEqual(this.logMock.child.lastCall.arg, {
+    name: 'wip',
+    account: 1,
+    repo: 1,
+    private: false,
+    event: 'check_run',
+    action: 'requested_action',
+    requested: 'reset'
   })
 
   t.end()
@@ -150,12 +158,7 @@ test('request error', async function (t) {
 
   // check resulting logs
   t.is(this.logMock.error.callCount, 1)
-  const logParams = this.logMock.error.lastCall.arg
-
-  t.is(logParams.accountId, 1)
-  t.is(logParams.action, 'override')
-  t.is(logParams.error.code, 500)
-  t.is(logParams.error.message, 'Ooops')
+  t.same(this.logMock.error.lastCall.arg, SERVER_ERROR)
 
   t.end()
 })

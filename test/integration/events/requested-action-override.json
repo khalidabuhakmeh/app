@@ -6,7 +6,10 @@
       "identifier": "override:1"
     },
     "repository": {
+      "id": 1,
       "name": "app",
+      "full_name": "app/wip",
+      "private": false,
       "owner": {
         "id": 1,
         "login": "wip"
