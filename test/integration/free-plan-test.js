@@ -28,6 +28,7 @@ beforeEach(function (done) {
   }
   this.app.auth = () => Promise.resolve(this.githubMock)
   this.logMock = simple.mock()
+  this.logMock.child = simple.mock().returnWith(this.logMock)
   this.logMock.info = simple.mock()
   this.logMock.error = simple.mock().callFn(console.log)
   this.logMock.child = simple.mock().returnWith(this.logMock)
@@ -67,15 +68,18 @@ test('new pull request with "Test" title', async function (t) {
 
   // check resulting logs
   t.is(this.logMock.info.callCount, 1)
-  t.deepEqual(this.logMock.info.lastCall.arg, {
-    accountId: 1,
+  t.is(this.logMock.info.lastCall.arg, '💾✅ wip/app#1')
+  t.deepEqual(this.logMock.child.lastCall.arg, {
+    name: 'wip',
+    account: 1,
     plan: 'free',
-    status: {
-      wip: false,
-      changed: true
-    },
-    title: 'Test',
-    url: 'https://github.com/wip/app/issues/1'
+    repo: 1,
+    event: 'pull_request',
+    action: 'opened',
+    wip: false,
+    change: true,
+    location: null,
+    match: null
   })
 
   t.end()
@@ -92,12 +96,12 @@ test('new pull request with "[WIP] Test" title', async function (t) {
   t.notMatch(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
 
   // check resulting logs
-  const logParams = this.logMock.info.lastCall.arg
-  t.is(logParams.status.wip, true)
-  t.is(logParams.status.changed, true)
-  t.is(logParams.status.location, 'title')
-  t.is(logParams.status.match, 'WIP')
-  t.is(logParams.status.text, '[WIP] Test')
+  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1')
+  const logParams = this.logMock.child.lastCall.arg
+  t.is(logParams.wip, true)
+  t.is(logParams.change, true)
+  t.is(logParams.location, 'title')
+  t.is(logParams.match, 'WIP')
 
   t.end()
 })
@@ -113,12 +117,10 @@ test('new pull request with "[Work in Progress] Test" title', async function (t)
   t.notMatch(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
 
   // check resulting logs
-  const logParams = this.logMock.info.lastCall.arg
-  t.is(logParams.status.wip, true)
-  t.is(logParams.status.changed, true)
-  t.is(logParams.status.location, 'title')
-  t.is(logParams.status.match, 'Work in Progress')
-  t.is(logParams.status.text, '[Work in Progress] Test')
+  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1')
+  const logParams = this.logMock.child.lastCall.arg
+  t.is(logParams.location, 'title')
+  t.is(logParams.match, 'Work in Progress')
 
   t.end()
 })
@@ -134,12 +136,10 @@ test('new pull request with "🚧 Test" title', async function (t) {
   t.notMatch(createCheckParams.output.summary, /You can override the status by adding "@wip ready for review"/)
 
   // check resulting logs
-  const logParams = this.logMock.info.lastCall.arg
-  t.is(logParams.status.wip, true)
-  t.is(logParams.status.changed, true)
-  t.is(logParams.status.location, 'title')
-  t.is(logParams.status.match, '🚧')
-  t.is(logParams.status.text, '🚧 Test')
+  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1')
+  const logParams = this.logMock.child.lastCall.arg
+  t.is(logParams.location, 'title')
+  t.is(logParams.match, '🚧')
 
   t.end()
 })
@@ -162,9 +162,7 @@ test('pending pull request with "Test" title', async function (t) {
   t.is(createCheckParams.conclusion, 'success')
 
   // check resulting logs
-  const logParams = this.logMock.info.lastCall.arg
-  t.is(logParams.status.wip, false)
-  t.is(logParams.status.changed, true)
+  t.is(this.logMock.info.lastCall.arg, '💾✅ wip/app#1')
 
   t.end()
 })
@@ -186,9 +184,7 @@ test('ready pull request with "[WIP] Test" title', async function (t) {
   t.is(createCheckParams.status, 'in_progress')
 
   // check resulting logs
-  const logParams = this.logMock.info.lastCall.arg
-  t.is(logParams.status.wip, true)
-  t.is(logParams.status.changed, true)
+  t.is(this.logMock.info.lastCall.arg, '💾⏳ wip/app#1')
 
   t.end()
 })
@@ -209,9 +205,7 @@ test('pending pull request with "[WIP] Test" title', async function (t) {
   t.is(this.githubMock.checks.create.callCount, 0)
 
   // check resulting logs
-  const logParams = this.logMock.info.lastCall.arg
-  t.is(logParams.status.wip, true)
-  t.is(logParams.status.changed, false)
+  t.is(this.logMock.info.lastCall.arg, '😐⏳ wip/app#1')
 
   t.end()
 })
@@ -232,9 +226,7 @@ test('ready pull request with "Test" title', async function (t) {
   t.is(this.githubMock.checks.create.callCount, 0)
 
   // check resulting logs
-  const logParams = this.logMock.info.lastCall.arg
-  t.is(logParams.status.wip, false)
-  t.is(logParams.status.changed, false)
+  t.is(this.logMock.info.lastCall.arg, '😐✅ wip/app#1')
 
   t.end()
 })
@@ -259,9 +251,7 @@ test('active marketplace "free" plan', async function (t) {
   t.is(createCheckParams.conclusion, 'success')
 
   // check resulting logs
-  const logParams = this.logMock.info.lastCall.arg
-  t.is(logParams.status.wip, false)
-  t.is(logParams.status.changed, true)
+  t.is(this.logMock.info.lastCall.arg, '💾✅ wip/app#1')
 
   t.end()
 })
@@ -277,14 +267,7 @@ test('request error', async function (t) {
   t.is(this.githubMock.checks.create.callCount, 0)
 
   // check resulting logs
-  const logParams = this.logMock.error.lastCall.arg
-  t.is(logParams.accountId, 1)
-  t.is(logParams.plan, 'free')
-  t.is(logParams.status.wip, false)
-  t.is(logParams.title, 'Test')
-  t.is(logParams.url, 'https://github.com/wip/app/issues/1')
-  t.is(logParams.error.code, 500)
-  t.is(logParams.error.message, 'Ooops')
+  this.same(this.logMock.error.lastCall.arg, SERVER_ERROR)
 
   t.end()
 })

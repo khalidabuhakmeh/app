@@ -4,7 +4,6 @@
     "action": "opened",
     "pull_request": {
       "title": "[WIP] Test",
-      "html_url": "https://github.com/wip/app/issues/1",
       "number": 1,
       "head": {
         "sha": "sha123"
@@ -12,7 +11,9 @@
       "labels": []
     },
     "repository": {
+      "id": 1,
       "name": "app",
+      "full_name": "wip/app",
       "owner": {
         "id": 1,
         "login": "wip"
