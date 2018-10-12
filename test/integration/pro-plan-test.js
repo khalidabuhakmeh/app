@@ -1,7 +1,7 @@
 const lolex = require('lolex')
-const {Application} = require('probot')
+const { Application } = require('probot')
 const simple = require('simple-mock')
-const {beforeEach, test} = require('tap')
+const { beforeEach, test } = require('tap')
 
 const plugin = require('../../')
 const NOT_FOUND_ERROR = new Error('Not found')
@@ -35,7 +35,7 @@ beforeEach(function (done) {
       getContent: simple.mock().rejectWith(NOT_FOUND_ERROR)
     },
     pullRequests: {
-      getCommits: simple.mock().resolveWith({data: []})
+      getCommits: simple.mock().resolveWith({ data: [] })
     }
   }
   this.app.auth = () => Promise.resolve(this.githubMock)
@@ -486,7 +486,7 @@ test('pending pull request with override and "[WIP] test" title', async function
   t.end()
 })
 
-test('custom APP_NAME', {only: true}, async function (t) {
+test('custom APP_NAME', { only: true }, async function (t) {
   simple.mock(process.env, 'APP_NAME', 'WIP (beta)')
   await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
   simple.restore()

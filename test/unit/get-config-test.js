@@ -1,4 +1,4 @@
-const {test} = require('tap')
+const { test } = require('tap')
 
 const getConfig = require('../../lib/pro/get-config')
 

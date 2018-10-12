@@ -1,4 +1,4 @@
-const {test} = require('tap')
+const { test } = require('tap')
 
 const getPlan = require('../../lib/common/get-plan')
 

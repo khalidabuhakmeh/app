@@ -1,7 +1,7 @@
 const lolex = require('lolex')
-const {Application} = require('probot')
+const { Application } = require('probot')
 const simple = require('simple-mock')
-const {beforeEach, test} = require('tap')
+const { beforeEach, test } = require('tap')
 
 const plugin = require('../../')
 
