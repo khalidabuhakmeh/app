@@ -1,6 +1,6 @@
 const { test } = require('tap')
 
-const getPlan = require('../../lib/common/get-plan')
+const getPlan = require('../../lib/get-plan')
 
 test('throws error if getting current plan fails with error other than 404', async function (t) {
   try {
