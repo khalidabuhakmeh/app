@@ -268,7 +268,23 @@ test('request error', async function (t) {
   t.is(this.githubMock.checks.create.callCount, 0)
 
   // check resulting logs
-  this.same(this.logMock.error.lastCall.arg, SERVER_ERROR)
+  t.same(this.logMock.error.lastCall.arg, SERVER_ERROR)
+
+  t.end()
+})
+
+test('request error (without code being parsed, see octokit/rest.js#684)', async function (t) {
+  // simulate request error
+  this.githubMock.checks.listForRef = simple.mock().rejectWith(new Error('{"code": 123}'))
+  this.logMock.error = simple.mock()
+
+  await this.app.receive(require('./events/new-pull-request-with-test-title.json'))
+
+  // does not try to create new check run
+  t.is(this.githubMock.checks.create.callCount, 0)
+
+  // check resulting logs
+  t.same(this.logMock.error.lastCall.arg.code, 123)
 
   t.end()
 })

@@ -3,7 +3,7 @@
   "payload": {
     "action": "opened",
     "pull_request": {
-      "title": "Test",
+      "title": "foo dO NoT mERGe bar",
       "number": 1,
       "head": {
         "sha": "sha123"
